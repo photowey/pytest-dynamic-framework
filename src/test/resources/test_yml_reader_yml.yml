@@ -1,0 +1,19 @@
+# -*- coding:utf-8 -*-
+
+# ---------------------------------------------
+# @file test_yml_reader_yml.yml
+# @description test_yml_reader_yml.yml
+# @author WcJun
+# @date 2021/07/19
+# ---------------------------------------------
+
+- name: 'test reader yml'
+  request:
+    url: 'https://www.baidu.com'
+    method: 'get'
+    headers:
+      - content-type: 'application/html'
+    parameters:
+      grant_type: 'client_credential'
+      app-id: 'your.appId'
+      app-secret: 'your.appSecret'
