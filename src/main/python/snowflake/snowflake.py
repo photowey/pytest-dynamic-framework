@@ -6,6 +6,10 @@
 # @author WcJun
 # @date 2021/07/19
 # ---------------------------------------------
+# Twitter's Snowflake algorithm implementation which is used to generate distributed IDs.
+# https://github.com/twitter-archive/snowflake/blob/snowflake-2010/src/main/scala/com/twitter/service/snowflake/IdWorker.scala
+# copy from: https://www.cnblogs.com/oklizz/p/11865750.html
+# ---------------------------------------------
 
 import time
 
@@ -50,7 +54,8 @@ class SnowflakeIdWorker(object):
         self.data_center_id = data_center_id
         self.sequence = sequence
 
-        self.last_timestamp = -1  # 上次计算的时间戳
+        # 上次计算的时间戳
+        self.last_timestamp = -1
 
     def _gen_timestamp(self):
         """
