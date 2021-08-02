@@ -29,7 +29,7 @@ class RequestExecutor(object):
         """
         method: str = request.method
         executor = self.switch(method)
-        response: http.client.HTTPResponse = executor(request.url, request.headers)
+        response: http.client.HTTPResponse = executor(request.url, request.body, request.headers)
 
         return response
 
@@ -73,14 +73,27 @@ class RequestExecutor(object):
         return request
 
     @staticmethod
-    def handle_request_get(url: str, http_headers: dict) -> http.client.HTTPResponse:
+    def populateUrlParameters(parameters) -> str:
+        param_chain: [] = ['?']
+        if type(parameters) == dict and len(parameters) > 0:
+            for parameter_key in parameters.keys():
+                single_param: [] = [parameter_key, '=', parameters[parameter_key], '&']
+                param_chain.append(''.join(single_param))
+        chain_str: str = ''.join(param_chain)
+
+        return chain_str[:-1]
+
+    @staticmethod
+    def handle_request_get(url: str, params: dict, http_headers: dict) -> http.client.HTTPResponse:
         """
         handle the get request \n
         :param url: the URL
+        :param params: the params
         :param http_headers: the headers
         :return: the HTTPResponse
         """
-        request = Request(url, headers=http_headers)
+        parameters = RequestExecutor.populateUrlParameters(params)
+        request = Request(url + parameters, headers=http_headers)
         response = urlopen(request)
 
         return response
