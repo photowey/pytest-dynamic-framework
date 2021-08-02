@@ -22,7 +22,29 @@ class RequestExecutor(object):
     """
 
     def execute(self, request: HttpRequest):
-        pass
+        """
+        execute the http request.
+        :param request: the HttpRequest
+        :return: the HTTPResponse
+        """
+        method: str = request.method
+        executor = self.switch(method)
+        response: http.client.HTTPResponse = executor(request.url, request.headers)
+
+        return response
+
+    def switch(self, method: str):
+        switch = {
+            'get': self.handle_request_get,
+            'post': self.handle_request_post,
+            'put': self.handle_request_put,
+            'patch': self.handle_request_patch,
+            'delete': self.handle_request_delete
+        }
+
+        executor = switch[method]
+
+        return executor
 
     @staticmethod
     def populate_headers() -> dict:
