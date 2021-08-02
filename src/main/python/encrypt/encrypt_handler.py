@@ -18,11 +18,12 @@ class EncryptHandler:
     def __init__(self):
         # ~\pytest-dynamic-framework\src\main\python\encrypt
         current_path = os.path.abspath(os.path.dirname(__file__))
-        jar_path = os.path.abspath(os.path.join(current_path, '../../resources/encrypt/rsa-encryptor.jar'))
+        jar_path = os.path.abspath(os.path.join(
+            current_path, '..{}..{}resources{}encrypt{}rsa-encryptor.jar'.format(os.sep, os.sep, os.sep, os.sep)))
         # jdk version
         java_home = os.environ['JAVA_HOME']
         jpype.startJVM(
-            '{}/bin/server/jvm.dll'.format(java_home),
+            '{}{}bin{}server{}jvm.dll'.format(java_home, os.sep, os.sep, os.sep),
             '-Djava.class.path={}'.format(jar_path),
             convertStrings=False
         )

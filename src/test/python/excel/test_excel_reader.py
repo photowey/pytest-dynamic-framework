@@ -6,9 +6,10 @@
 # @author WcJun
 # @date 2021/07/31
 # ---------------------------------------------
+
 import os
 
-from main.python.excel.excel_reader import ExcelReader
+from src.main.python.excel.excel_reader import ExcelReader
 
 
 class TestExcelReader:
