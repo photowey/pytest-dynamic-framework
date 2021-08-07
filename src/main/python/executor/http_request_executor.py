@@ -7,21 +7,55 @@
 # @date 2021/07/19
 # ---------------------------------------------
 
-import http
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from fake_useragent import UserAgent
+import requests
+import requests_mock
 
+from src.main.python.json.json_handler import JSON
 from src.main.python.request.http_request import HttpRequest
 
 
+def request_mock(request: HttpRequest):
+    method: str = request.method
+    remote_url: str = request.url
+    mock_text: str = JSON.transferObject(request.mock_response)
+    with requests_mock.Mocker() as mocker:
+        if request.mock_enabled:
+            if method == 'get':
+                mocker.get(remote_url, text=mock_text)
+                session = requests.Session()
+                return session.get(remote_url, verify=request.ssl)
+            elif method == 'post':
+                mocker.post(remote_url, text=mock_text)
+                session = requests.Session()
+                return session.post(remote_url, verify=request.ssl)
+            elif method == 'put':
+                mocker.put(remote_url, text=mock_text)
+                session = requests.Session()
+                return session.put(remote_url, verify=request.ssl)
+            elif method == 'patch':
+                mocker.patch(remote_url, text=mock_text)
+                session = requests.Session()
+                return session.patch(remote_url, verify=request.ssl)
+            elif method == 'delete':
+                mocker.delete(remote_url, text=mock_text)
+                session = requests.Session()
+                return session.delete(remote_url, verify=request.ssl)
+
+
 class RequestExecutor(object):
+
+    def __init__(self):
+        # do something
+        pass
+
     """
     Http Request Executor
     """
 
-    def execute(self, request: HttpRequest):
+    def execute(self, request: HttpRequest) -> requests.models.Response:
         """
         execute the http request.
         :param request: the HttpRequest
@@ -29,131 +63,84 @@ class RequestExecutor(object):
         """
         method: str = request.method
         executor = self.switch(method)
-        response: http.client.HTTPResponse = executor(request.url, request.body, request.headers)
+        if request.mock_enabled:
+            return request_mock(request)
+
+        response: requests.models.Response = executor(request)
 
         return response
 
     def switch(self, method: str):
-        switch = {
-            'get': self.handle_request_get,
-            'post': self.handle_request_post,
-            'put': self.handle_request_put,
-            'patch': self.handle_request_patch,
-            'delete': self.handle_request_delete
+        switch_dict = {
+            'get': self.request_get,
+            'post': self.request_post,
+            'put': self.request_put,
+            'patch': self.request_patch,
+            'delete': self.request_delete
         }
 
-        executor = switch[method]
+        executor = switch_dict[method]
 
         return executor
 
-    @staticmethod
-    def populate_headers() -> dict:
-        """
-        populate chrome headers \n
-        :return:
-        :rtype: dict
-        """
-        http_headers = {
-            "User-Agent": UserAgent().chrome
-        }
-
-        return http_headers
-
-    @staticmethod
-    def populate_request(url: str, http_headers: dict) -> Request:
-        """
-        populate request \n
-        :param url: URL
-        :param http_headers: the headers
-        :return: Request
-        :rtype request
-        """
-        request = Request(url, headers=http_headers)
-
-        return request
-
-    @staticmethod
-    def populateUrlParameters(parameters) -> str:
-        param_chain: [] = ['?']
-        if type(parameters) == dict and len(parameters) > 0:
-            for parameter_key in parameters.keys():
-                single_param: [] = [parameter_key, '=', parameters[parameter_key], '&']
-                param_chain.append(''.join(single_param))
-        chain_str: str = ''.join(param_chain)
-
-        return chain_str[:-1]
-
-    @staticmethod
-    def handle_request_get(url: str, params: dict, http_headers: dict) -> http.client.HTTPResponse:
+    def request_get(self, request: HttpRequest) -> requests.models.Response:
         """
         handle the get request \n
-        :param url: the URL
-        :param params: the params
-        :param http_headers: the headers
+        :param request: the framework request object
         :return: the HTTPResponse
         """
-        parameters = RequestExecutor.populateUrlParameters(params)
-        request = Request(url + parameters, headers=http_headers)
-        response = urlopen(request)
 
-        return response
+        return requests.Session().get(request.url, params=request.parameters, verify=request.ssl)
 
-    @staticmethod
-    def handle_request_post(url: str, params: dict, http_headers: dict) -> http.client.HTTPResponse:
+    def request_post(self, request: HttpRequest) -> requests.models.Response:
         """
         handle the post request \n
-        :param url: the URL
-        :param params: the params of Request
-        :param http_headers: the headers
+        :param request: the framework request object
         :return: the HTTPResponse
         """
-        form_data = urlencode(params).encode()
-        request = Request(url, data=form_data, headers=http_headers)
-        response = urlopen(request)
 
-        return response
+        return requests.Session().post(request.url, json=request.body, verify=request.ssl)
 
-    @staticmethod
-    def handle_request_put(url: str, params: dict, http_headers: dict) -> http.client.HTTPResponse:
+    def request_put(self, request: HttpRequest) -> requests.models.Response:
         """
         handle the put request \n
-        :param url: the URL
-        :param params: the params of Request
-        :param http_headers: the headers
+        :param request: the framework request object
         :return: the HTTPResponse
         """
-        form_data = urlencode(params).encode()
-        request = Request(url, data=form_data, headers=http_headers, method='put')
-        response = urlopen(request)
 
-        return response
+        return requests.Session().put(request.url, json=request.body, verify=request.ssl)
 
-    @staticmethod
-    def handle_request_patch(url: str, params: dict, http_headers: dict) -> http.client.HTTPResponse:
+    def request_patch(self, request: HttpRequest) -> requests.models.Response:
         """
         handle the patch request \n
-        :param url: the URL
-        :param params: the params of Request
-        :param http_headers: the headers
+        :param request: the framework request object
         :return: the HTTPResponse
         """
-        form_data = urlencode(params).encode()
-        request = Request(url, data=form_data, headers=http_headers, method='patch')
-        response = urlopen(request)
 
-        return response
+        return requests.Session().patch(request.url, json=request.body, verify=request.ssl)
 
-    @staticmethod
-    def handle_request_delete(url: str, params: dict, http_headers: dict) -> http.client.HTTPResponse:
+    def request_delete(self, request: HttpRequest) -> requests.models.Response:
         """
         handle the delete request \n
-        :param url: the URL
-        :param params: the params of Request
-        :param http_headers: the headers
+        :param request: the framework request object
         :return: the HTTPResponse
         """
-        form_data = urlencode(params).encode()
-        request = Request(url, data=form_data, headers=http_headers, method='delete')
-        response = urlopen(request)
+
+        return requests.Session().delete(request.url, verify=request.ssl)
+
+    def _execute_request(self, request: HttpRequest, method: str) -> requests.models.Response:
+        """
+        handle the post request \n
+        :param request: the framework request object
+        :param method: the http method
+        :return: the HTTPResponse
+        """
+        if request.body is not None:
+            form_data = urlencode(request.body).encode()
+            request = Request(request.url, data=form_data, headers=request.headers, method=method)
+            response = urlopen(request)
+        else:
+            request = Request(request.url, headers=request.headers, method=method)
+            response = urlopen(request)
 
         return response

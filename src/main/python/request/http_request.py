@@ -23,6 +23,8 @@ class HttpRequest:
         self.headers = options.headers
         self.parameters = options.parameters
         self.ssl = options.ssl
+        self.mock_enabled = options.mock_enabled
+        self.mock_response = options.mock_response
 
     def populateUrlParameters(self) -> str:
         param_chain: [] = ['?']

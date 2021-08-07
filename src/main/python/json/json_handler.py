@@ -16,6 +16,15 @@ class JSON(object):
     """
 
     @staticmethod
+    def transferObject(body: object) -> str:
+        """
+        Serialize the object to a JSON string.\n
+        :param body:
+        :return:
+        """
+        return json.dumps(body)
+
+    @staticmethod
     def toJSONString(dict_body: dict) -> str:
         """
         Serialize the dict object to a JSON string.\n
